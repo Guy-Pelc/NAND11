@@ -1,0 +1,81 @@
+<class>
+<keyword> class </keyword>
+<identifier category='class' usage='definition'> Main </identifier>
+<symbol> { </symbol>
+<subroutineDec>
+<keyword> function </keyword>
+<keyword> void </keyword>
+<identifier category='subroutine' usage='definition'> main </identifier>
+<symbol> ( </symbol>
+<parameterList>
+</parameterList>
+<symbol> ) </symbol>
+<subroutineBody>
+<symbol> { </symbol>
+<varDec>
+<keyword> var </keyword>
+<identifier category='class' usage='call'> PongGame </identifier>
+<identifier category='VAR' usage='definition' index='0'> game </identifier>
+<symbol> ; </symbol>
+</varDec>
+<statements>
+<doStatement>
+<keyword> do </keyword>
+<identifier category='class' usage='call'> PongGame </identifier>
+<symbol> . </symbol>
+<identifier category='subroutine' usage='call'> newInstance </identifier>
+<symbol> ( </symbol>
+<expressionList>
+</expressionList>
+<symbol> ) </symbol>
+<symbol> ; </symbol>
+</doStatement>
+<letStatement>
+<keyword> let </keyword>
+<identifier category='VAR' usage='call' index='0'> game </identifier>
+<symbol> = </symbol>
+<expression>
+<term>
+<identifier category='class' usage='call'> PongGame </identifier>
+<symbol> . </symbol>
+<identifier category='subroutine' usage='call'> getInstance </identifier>
+<symbol> ( </symbol>
+<expressionList>
+</expressionList>
+<symbol> ) </symbol>
+</term>
+</expression>
+<symbol> ; </symbol>
+</letStatement>
+<doStatement>
+<keyword> do </keyword>
+<identifier category='class' usage='call'> game </identifier>
+<symbol> . </symbol>
+<identifier category='subroutine' usage='call'> run </identifier>
+<symbol> ( </symbol>
+<expressionList>
+</expressionList>
+<symbol> ) </symbol>
+<symbol> ; </symbol>
+</doStatement>
+<doStatement>
+<keyword> do </keyword>
+<identifier category='class' usage='call'> game </identifier>
+<symbol> . </symbol>
+<identifier category='subroutine' usage='call'> dispose </identifier>
+<symbol> ( </symbol>
+<expressionList>
+</expressionList>
+<symbol> ) </symbol>
+<symbol> ; </symbol>
+</doStatement>
+<returnStatement>
+<keyword> return </keyword>
+<symbol> ; </symbol>
+</returnStatement>
+</statements>
+<symbol> } </symbol>
+</subroutineBody>
+</subroutineDec>
+<symbol> } </symbol>
+</class>
