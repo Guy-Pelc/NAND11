@@ -15,10 +15,11 @@ For each source Xxx.jack, the analyzer goes through the following logic:
 def analyzer(file_path):
     input_file_path = file_path
     output_file_path = file_path[:-5] + ".xml"
+    output_vm_path = file_path[:-5] + ".vm"
 
     tk = Tk.JackTokenizer(input_file_path)
     with open(output_file_path, 'w') as f:
-        compiler = CmpE.CompilationEngine(tk, f)
+        compiler = CmpE.CompilationEngine(tk, f, output_vm_path)
         compiler.compile_class()
     return
 

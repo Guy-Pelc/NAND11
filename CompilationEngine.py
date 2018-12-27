@@ -1,4 +1,5 @@
 import SymbolTable
+import VMWriter
 
 OP = ['+', '-', '*', '/', '&amp;', '|', '&lt;', '&gt;', '=']
 UNARY_OP = ['-', '~']
@@ -7,7 +8,7 @@ TYPES = ['int', 'char', 'boolean', 'void']
 
 
 class CompilationEngine:
-    def __init__(self, input_file, output_file):
+    def __init__(self, input_file, output_file, output_vm_path):
         """
         Creates a new compilation engine with the given input and output.
         The next routine called must be compileClass().
@@ -17,6 +18,11 @@ class CompilationEngine:
         self.tk = input_file
         self.f = output_file
         self.symbol_table = SymbolTable.SymbolTable()
+        self.writer = VMWriter.VMWriter(output_vm_path)
+
+        self.current_class = ""
+        self.current_subroutine = ""
+        self.current_ret_type = ""
 
     def compile_class(self):
         """
@@ -31,8 +37,8 @@ class CompilationEngine:
         assert self.tk.token_val() == 'class'
         self.write_elementary_expression_and_advance()
         assert self.is_class_name()
+        self.current_class = self.tk.token_val()
         self.write_identifier_and_advance('class', 'definition')
-
         assert self.tk.token_val() == '{'
         self.write_elementary_expression_and_advance()
         self.compile_class_var_dec()
@@ -135,23 +141,26 @@ class CompilationEngine:
             self.write_elementary_expression_and_advance()
 
             assert (self.is_type() | (self.tk.token_val() == 'void')), 'expected "void"|type'
+            self.current_ret_type = self.tk.token_val()
             if self.tk.token_val() in TYPES:
                 self.write_elementary_expression_and_advance()
             else:
                 # className
-                self.write_identifier_and_advance('class','call')
+                self.write_identifier_and_advance('class', 'call')
 
             assert self.is_subroutine_name(), 'expected subroutine Name'
+            self.current_subroutine = self.tk.token_val()
             self.write_identifier_and_advance('subroutine', 'definition')
 
             assert self.tk.token_val() == '(', 'expected "("'
             self.write_elementary_expression_and_advance()
 
-            self.compile_parameter_list()
+            n_args = self.compile_parameter_list()
 
             assert self.tk.token_val() == ')', 'expected ")"'
             self.write_elementary_expression_and_advance()
 
+            self.writer.write_function(self.current_class+self.current_subroutine, n_args)
             #  compile subroutine body:
             self.f.write("<subroutineBody>\n")
 
@@ -178,23 +187,26 @@ class CompilationEngine:
         Compiles a (possibly empty) parameter list,
         not including the enclosing "()"
         format: ((type varName) (','type varName)*)?
-        :return:
+        :return: n_args, int
         """
         self.f.write("<parameterList>\n")
+        n_args = 0
         if self.is_type():
+
             type = self.tk.token_val()
             if type in TYPES:
                 self.write_elementary_expression_and_advance()
             else:
                 # className
-                self.write_identifier_and_advance('class','usage')
+                self.write_identifier_and_advance('class', 'usage')
 
             assert self.is_var_name(), 'expected var name'
             name = self.tk.token_val()
             kind = 'ARG'
-            self.symbol_table.define(name,type,kind)
+            self.symbol_table.define(name, type, kind)
             index = self.symbol_table.index_of(name)
-            self.write_identifier_and_advance(kind,'definition',index)
+            self.write_identifier_and_advance(kind, 'definition', index)
+            n_args += 1
 
             while self.tk.token_val() == ',':
                 self.write_elementary_expression_and_advance()
@@ -208,8 +220,9 @@ class CompilationEngine:
                 self.symbol_table.define(name, type, kind)
                 index = self.symbol_table.index_of(name)
                 self.write_identifier_and_advance(kind, 'definition', index)
-
+                n_args += 1
         self.f.write("</parameterList>\n")
+        return n_args
 
     def compile_var_dec(self):
         """
@@ -279,6 +292,7 @@ class CompilationEngine:
         assert self.tk.token_val() == 'do'
         self.write_elementary_expression_and_advance()
         self.compile_subroutine_call()
+        self.writer.write_pop('temp', 0)
         assert self.tk.token_val() == ';'
         self.write_elementary_expression_and_advance()
         self.f.write("</doStatement>\n")
@@ -374,6 +388,9 @@ class CompilationEngine:
         """
         self.f.write("<returnStatement>\n")
         assert self.tk.token_val() == 'return'
+        if self.current_ret_type == 'void':
+            self.writer.write_push('constant', 0)
+        self.writer.write_return()
         self.write_elementary_expression_and_advance()
         if self.tk.token_val() != ';':
             self.compile_expression()
